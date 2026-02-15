@@ -1,0 +1,29 @@
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 44px);
+  margin: 0;
+}
+
+.auth-container {
+  border-radius: 12px;
+  box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 420px;
+  z-index: 100;
+}
+
+.auth-container h1 {
+  text-align: center;
+  margin-top: 0px;
+  margin-bottom: 10px;
+}
+
+.ant-form-item {
+  margin-bottom: 10px;
+}
+
+.ant-form-item-label {
+  padding-bottom: 0 !important;
+}
