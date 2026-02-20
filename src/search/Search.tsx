@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Input, Popconfirm, message, Table, Layout, Collapse, Checkbox, Divider, type CheckboxProps, type CollapseProps, Card, Button, Tooltip, Drawer, Badge, Space, Typography } from 'antd';
-import { getCategories, search } from '../api';
+import { getCategories, search, addItemToBucket, getBucketItems, deleteItemFromBucket, clearBucketApi } from '../api';
 import { FilterUI, type Filter } from './ItemUI';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import Bucket from './Bucket';
@@ -18,8 +18,9 @@ interface ResultSearchProps {
 }
 
 export interface BucketItemProps {
-    categoryId: string;
-    id: string;
+    id: number;
+    service_id: string;
+    document_id: string;
 }
 
 interface CategoryItem {
@@ -40,66 +41,86 @@ function Search({ token, onLogout }: SearchProps) {
     const [filterState, setFilterState] = useState<Record<string, any>>({});
     const [bucket, setBucket] = useState<BucketItemProps[]>([]);
     const [isOpenBucket, setIsOpenBucket] = useState<boolean>(false);
+    const textSearch = useRef<string>('');
+    const [isSearching, setIsSearching] = useState(false);
 
     async function loadCategories() {
         const response = await getCategories(token);
         setCategories(response.data);
     }
 
-    function getBucket(): BucketItemProps[] {
-        let bucket = localStorage.getItem('bucket');
-        let result: BucketItemProps[];
-        if (bucket !== null) {
-            result = JSON.parse(bucket);
+    async function getBucket() {
+        const response = await getBucketItems(token);
+        if (response.status === 200) {
+            setBucket(response.data);
         } else {
-            result = [];
+            message.error('Ошибка при получении элементов корзины!');
         }
-        return result;
     }
 
-    function checkItemInBucket(itemId: string, categoryId: string): boolean {
-        return bucket.some(item =>
-            item.id === itemId && item.categoryId === categoryId
-        )
-    }
-
-    const deleteFromBucket = (itemId: string, categoryId: string) => {
-        const newBucket = bucket.filter(bucketItem =>
-            !(bucketItem.id === itemId && bucketItem.categoryId === categoryId)
-        );
-        setBucket(newBucket);
-        localStorage.setItem('bucket', JSON.stringify(newBucket));
-        message.success("Удалено из корзины");
-    }
-
-    const addToBucket = (itemId: string, categoryId: string) => {
-        const newItem = { id: itemId, categoryId: categoryId };
-
-        // Проверяем, нет ли уже такого элемента в корзине
-        const isAlreadyInBucket = bucket.some(item =>
-            item.id === itemId && item.categoryId === categoryId
+    function checkItemInBucket(documentId: string, serviceId: string): number | null {
+        const foundItem = bucket.find(item =>
+            item.document_id === documentId && item.service_id === serviceId
         );
 
-        if (!isAlreadyInBucket) {
-            // Создаем новый массив с добавленным элементом
-            const newBucket = [...bucket, newItem];
-            setBucket(newBucket);
+        return foundItem ? foundItem.id : null;
+    }
 
-            // Также обновляем localStorage
-            localStorage.setItem('bucket', JSON.stringify(newBucket));
+    const deleteFromBucket = async (itemId: number) => {
+        const response = await deleteItemFromBucket(token, itemId);
+
+        if (response.status === 200) {
+            message.success("Удалено из корзины");
+            await getBucket();
+        } else {
+            message.error('Ошибка при удалении элементов из корзины!');
+        }
+        // const newBucket = bucket.filter(bucketItem =>
+        //     !(bucketItem.id === itemId && bucketItem.categoryId === categoryId)
+        // );
+        // setBucket(newBucket);
+        // localStorage.setItem('bucket', JSON.stringify(newBucket));
+        // message.success("Удалено из корзины");
+    }
+
+    const addToBucket = async (itemId: string, categoryId: string) => {
+        const response = await addItemToBucket(token, itemId, categoryId);
+        if (response.status === 200) {
             message.success("Добавлено в корзину");
+            await getBucket();
+        } else {
+            message.error('Не удалось добавить в корзину!');
         }
+
+        // // Проверяем, нет ли уже такого элемента в корзине
+        // const isAlreadyInBucket = bucket.some(item =>
+        //     item.id === itemId && item.categoryId === categoryId
+        // );
+
+        // if (!isAlreadyInBucket) {
+        //     // Создаем новый массив с добавленным элементом
+        //     const newBucket = [...bucket, newItem];
+        //     setBucket(newBucket);
+
+        //     // Также обновляем localStorage
+        //     localStorage.setItem('bucket', JSON.stringify(newBucket));
+        //     message.success("Добавлено в корзину");
+        // }
     }
 
-    const clearBucket = () => {
-        const newBucket: BucketItemProps[] = [];
-        setBucket(newBucket);
-        localStorage.setItem('bucket', JSON.stringify(newBucket));
-        message.success("Корзина очищена");
+    const clearBucket = async () => {
+        const response = await clearBucketApi(token);
+        if (response.status === 200) {
+            const newBucket: BucketItemProps[] = [];
+            setBucket(newBucket);
+            message.success("Корзина очищена");
+        } else {
+            message.error('Ошибка при очистке корзины!');
+        }
     }
 
     useEffect(() => {
-        setBucket(getBucket());
+        getBucket();
         loadCategories();
     }, []);
 
@@ -113,13 +134,14 @@ function Search({ token, onLogout }: SearchProps) {
 
     const checkAll = checkedList.length === categoriesOptions.length;
 
-    const onSearch = async (value: string) => {
+    const onSearch = async () => {
         const order = {
-            text: value,
+            text: textSearch.current,
             filters: filterState,
             token: token,
             categories: checkedList,
         };
+        setIsSearching(true);
         const response = await search(order);
         if (response.status === 200) {
             if (response.data.length === 0) {
@@ -140,6 +162,7 @@ function Search({ token, onLogout }: SearchProps) {
         } else {
             message.error('Ошибка поиска!');
         }
+        setIsSearching(false);
     }
 
     const columns = [
@@ -161,11 +184,12 @@ function Search({ token, onLogout }: SearchProps) {
             title: 'Действие',
             width: '100px',
             render: (_: string, record: ResultSearchProps) => {
-                return checkItemInBucket(record.id, record.categoryId) ? <Tooltip title="Удалить из корзины">
+                const itemId: number | null = checkItemInBucket(record.id, record.categoryId)
+                return itemId !== null ? <Tooltip title="Удалить из корзины">
                     <Button
                         danger
                         icon={<MinusOutlined />}
-                        onClick={() => deleteFromBucket(record.id, record.categoryId)}
+                        onClick={() => deleteFromBucket(itemId)}
                     />
                 </Tooltip> :
                     <Tooltip title="Добавить в корзину">
@@ -251,8 +275,13 @@ function Search({ token, onLogout }: SearchProps) {
                 const category = categories[categoryId];
                 if (!category) return null;
 
-                const filtersItems: CollapseProps['items'] = Object.entries(category.filters).map(
-                    ([filterId, filter]) => ({
+                const filtersItems: CollapseProps['items'] = [];
+
+                for (const [filterId, filter] of Object.entries(category.filters)) {
+                    if (filter.type === "full_text") {
+                        continue
+                    }
+                    filtersItems.push({
                         key: categoryId + '-' + filterId,
                         label: filter.description,
                         children: (
@@ -262,10 +291,11 @@ function Search({ token, onLogout }: SearchProps) {
                                 filter={filter}
                                 value={filterState[categoryId]?.[filterId]}
                                 onChange={updateFilter}
+                                onSearch={onSearch}
                             />
                         ),
-                    })
-                );
+                    });
+                }
 
                 return (
                     <div key={'block-' + categoryId}>
@@ -283,7 +313,7 @@ function Search({ token, onLogout }: SearchProps) {
         </Layout.Sider>
         <Layout>
             <Layout.Header style={headerStyle}>
-                <Input.Search style={{ width: '100%' }} placeholder="Поиск" onSearch={onSearch} enterButton />
+                <Input.Search style={{ width: '100%' }} loading={isSearching} placeholder="Поиск" onChange={(e) => textSearch.current = e.target.value} onSearch={onSearch} enterButton />
                 <Badge count={bucket.length}>
                     <Button title='Открыть корзину' type='primary' onClick={() => setIsOpenBucket(true)}>Корзина</Button>
                 </Badge>

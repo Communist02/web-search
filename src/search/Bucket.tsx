@@ -6,21 +6,31 @@ interface BucketProps {
     token: string;
     bucketItems: BucketItemProps[];
     categories: Categories;
-    deleteFromBucket: (itemId: string, categoryId: string) => void;
+    deleteFromBucket: (itemId: number) => void;
 }
 
 function Bucket({ token, bucketItems, categories, deleteFromBucket }: BucketProps) {
     const columns = [
-        {
-            title: 'Категория',
-            dataIndex: 'categoryId',
-            // width: '20%',
-            render: (value: string) => categories[value].title,
-        },
+        // {
+        //     title: 'Категория',
+        //     dataIndex: 'categoryId',
+        //     // width: '20%',
+        //     render: (value: string) => categories[value].title,
+        // },
         {
             title: 'ID',
             dataIndex: 'id',
+            width: '70px',
+        },
+        {
+            title: 'ID Документа',
+            dataIndex: 'document_id',
             // width: '20%',
+        },
+        {
+            title: 'Имя сервиса',
+            dataIndex: 'service_id',
+            width: '150px',
         },
         // {
         //     title: 'Описание',
@@ -34,7 +44,7 @@ function Bucket({ token, bucketItems, categories, deleteFromBucket }: BucketProp
                     <Button
                         danger
                         icon={<DeleteOutlined />}
-                        onClick={() => deleteFromBucket(record.id, record.categoryId)}
+                        onClick={() => deleteFromBucket(record.id)}
                     />
                 </Tooltip>
             }

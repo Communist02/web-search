@@ -87,3 +87,39 @@ export const getCategories = async (token: string): Promise<AxiosResponse> => {
         return handleError(error as AxiosError, "get_categories");
     }
 };
+
+export const addItemToBucket = async (token: string, document_id: string, service_id: string): Promise<AxiosResponse> => {
+    try {
+        const response = await api.post('/add_to_bucket', { token, document_id, service_id });
+        return response;
+    } catch (error) {
+        return handleError(error as AxiosError, "add_to_bucket");
+    }
+};
+
+export const getBucketItems = async (token: string): Promise<AxiosResponse> => {
+    try {
+        const response = await api.get('/get_bucket', { params: { token } });
+        return response;
+    } catch (error) {
+        return handleError(error as AxiosError, "get_bucket");
+    }
+};
+
+export const deleteItemFromBucket = async (token: string, item_id: number): Promise<AxiosResponse> => {
+    try {
+        const response = await api.post('/delete_from_bucket', { token, item_id });
+        return response;
+    } catch (error) {
+        return handleError(error as AxiosError, "delete_from_bucket");
+    }
+};
+
+export const clearBucketApi = async (token: string): Promise<AxiosResponse> => {
+    try {
+        const response = await api.post('/clear_bucket', { token });
+        return response;
+    } catch (error) {
+        return handleError(error as AxiosError, "clear_bucket");
+    }
+};

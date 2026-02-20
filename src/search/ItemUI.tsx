@@ -15,6 +15,7 @@ interface FilterProps {
     filter: Filter;
     value: string[] & number[] & any;
     onChange: (categoryId: string, filterId: string, value: any) => void;
+    onSearch: () => void;
 }
 
 interface TermProps {
@@ -31,6 +32,7 @@ interface RangeProps {
     filter: Filter;
     value: number[];
     onChange: (categoryId: string, filterId: string, value: any) => void;
+    onSearch: () => void;
 }
 
 interface DateRangeProps {
@@ -47,6 +49,7 @@ interface GeoBoxProps {
     filter: Filter;
     value: any;
     onChange: (categoryId: string, filterId: string, value: any) => void;
+    onSearch: () => void;
 }
 
 interface GeoDistanceProps {
@@ -55,6 +58,7 @@ interface GeoDistanceProps {
     filter: Filter;
     value: any;
     onChange: (categoryId: string, filterId: string, value: any) => void;
+    onSearch: () => void;
 }
 
 const Term = ({ categoryId, filterId, filter, value, onChange }: TermProps) => {
@@ -74,13 +78,13 @@ const Term = ({ categoryId, filterId, filter, value, onChange }: TermProps) => {
     );
 };
 
-const Range = ({ categoryId, filterId, filter, value, onChange }: RangeProps) => {
+const Range = ({ categoryId, filterId, filter, value, onChange, onSearch }: RangeProps) => {
     return (
         <>
             <div style={{ 'display': 'inline-block', 'marginRight': 5 }}>От</div>
-            <InputNumber value={value[0]} min={filter.min} max={value[1]} onChange={(val) => onChange(categoryId, filterId, [val, value[1]])} />
+            <InputNumber value={value[0]} min={filter.min} max={value[1]} onPressEnter={onSearch} onChange={(val) => onChange(categoryId, filterId, [val, value[1]])} />
             <div style={{ 'display': 'inline-block', 'marginRight': 5, 'marginLeft': 5 }}>До</div>
-            <InputNumber value={value[1]} min={value[0]} max={filter.max} onChange={(val) => onChange(categoryId, filterId, [value[0], val])} />
+            <InputNumber value={value[1]} min={value[0]} max={filter.max} onPressEnter={onSearch} onChange={(val) => onChange(categoryId, filterId, [value[0], val])} />
         </>
     );
 };
@@ -97,44 +101,44 @@ const DateRange = ({ categoryId, filterId, filter, value, onChange }: DateRangeP
     );
 };
 
-const GeoBox = ({ categoryId, filterId, filter, value, onChange }: GeoBoxProps) => {
+const GeoBox = ({ categoryId, filterId, filter, value, onChange, onSearch }: GeoBoxProps) => {
     return (
         <>
             <Divider size='small'>Верхний левый угол</Divider>
             <div style={{ 'display': 'inline-block', 'marginRight': 5 }}>Широта</div>
-            <InputNumber value={value[0]} min={-90} max={90} onChange={(val) => onChange(categoryId, filterId, [val, value[1], value[2], value[3]])} />
+            <InputNumber value={value[0]} min={-90} max={90} onPressEnter={onSearch} onChange={(val) => onChange(categoryId, filterId, [val, value[1], value[2], value[3]])} />
             <div style={{ 'marginBottom': 5}} />
             <div style={{ 'display': 'inline-block', 'marginRight': 5 }}>Долгота</div>
-            <InputNumber value={value[1]} min={-180} max={180} onChange={(val) => onChange(categoryId, filterId, [value[0], val, value[2], value[3]])} />
+            <InputNumber value={value[1]} min={-180} max={180} onPressEnter={onSearch} onChange={(val) => onChange(categoryId, filterId, [value[0], val, value[2], value[3]])} />
             <div style={{ 'marginBottom': 5}} />
 
             <Divider size='small'>Нижний правый угол</Divider>
             <div style={{ 'display': 'inline-block', 'marginRight': 5 }}>Широта</div>
-            <InputNumber value={value[0]} min={-90} max={90} onChange={(val) => onChange(categoryId, filterId, [value[0], value[1], val, value[3]])} />
+            <InputNumber value={value[0]} min={-90} max={90} onPressEnter={onSearch} onChange={(val) => onChange(categoryId, filterId, [value[0], value[1], val, value[3]])} />
             <div style={{ 'marginBottom': 5}} />
             <div style={{ 'display': 'inline-block', 'marginRight': 5 }}>Долгота</div>
-            <InputNumber value={value[1]} min={-180} max={180} onChange={(val) => onChange(categoryId, filterId, [value[0], value[1], value[2], val])} />
+            <InputNumber value={value[1]} min={-180} max={180} onPressEnter={onSearch} onChange={(val) => onChange(categoryId, filterId, [value[0], value[1], value[2], val])} />
             <div style={{ 'marginBottom': 5}} />
         </>
     );
 };
 
-const GeoDistance = ({ categoryId, filterId, filter, value, onChange }: GeoDistanceProps) => {
+const GeoDistance = ({ categoryId, filterId, filter, value, onChange, onSearch }: GeoDistanceProps) => {
     return (
         <>
             <div style={{ 'display': 'inline-block', 'marginRight': 5 }}>Широта</div>
-            <InputNumber value={value[0]} min={-90} max={90} onChange={(val) => onChange(categoryId, filterId, [val, value[1], value[2]])} />
+            <InputNumber value={value[0]} min={-90} max={90} onPressEnter={onSearch} onChange={(val) => onChange(categoryId, filterId, [val, value[1], value[2]])} />
             <div style={{ 'marginBottom': 5}} />
             <div style={{ 'display': 'inline-block', 'marginRight': 5 }}>Долгота</div>
-            <InputNumber value={value[1]} min={-180} max={180} onChange={(val) => onChange(categoryId, filterId, [value[0], val, value[2]])} />
+            <InputNumber value={value[1]} min={-180} max={180} onPressEnter={onSearch} onChange={(val) => onChange(categoryId, filterId, [value[0], val, value[2]])} />
             <div style={{ 'marginBottom': 5}} />
             <div style={{ 'display': 'inline-block', 'marginRight': 5 }}>Дистанция (метры)</div>
-            <InputNumber value={value[2]} min={0} max={20037000} onChange={(val) => onChange(categoryId, filterId, [value[0], value[1], val])} />
+            <InputNumber value={value[2]} min={0} max={20037000} onPressEnter={onSearch} onChange={(val) => onChange(categoryId, filterId, [value[0], value[1], val])} />
         </>
     );
 };
 
-export const FilterUI = ({ categoryId, filterId, filter, value, onChange }: FilterProps) => {
+export const FilterUI = ({ categoryId, filterId, filter, value, onChange, onSearch }: FilterProps) => {
     switch (filter.type) {
         case "term":
             return <Term
@@ -151,6 +155,7 @@ export const FilterUI = ({ categoryId, filterId, filter, value, onChange }: Filt
                 filter={filter}
                 value={value ?? [filter.min, filter.max]}
                 onChange={onChange}
+                onSearch={onSearch}
             />;
         case "date_range":
             return <DateRange
@@ -167,6 +172,7 @@ export const FilterUI = ({ categoryId, filterId, filter, value, onChange }: Filt
                 filter={filter}
                 value={value ?? [null, null, null, null]}
                 onChange={onChange}
+                onSearch={onSearch}
             />;
         case "geo_distance":
             return <GeoDistance
@@ -175,10 +181,10 @@ export const FilterUI = ({ categoryId, filterId, filter, value, onChange }: Filt
                 filter={filter}
                 value={value ?? [null, null, null]}
                 onChange={onChange}
+                onSearch={onSearch}
             />;
         case "full_text":
             return <div>Используйте поле ввода сверху</div>;
-
         default:
             return null;
     }
